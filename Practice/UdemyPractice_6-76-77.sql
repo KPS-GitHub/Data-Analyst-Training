@@ -14,7 +14,9 @@ WITH cte_sales AS (
 	LIMIT 100000
 ),
 
--- use the sales cte made above to add a column for the running total sales value for each customer
+-- use the sales cte made above to add columns for: 
+-- -- the running total sales value for each customer
+-- -- the next order date, which will be used later to combine all orders by the same customer and on the same date
 cte_running_total_sales AS (
 	SELECT *, LEAD(orderDate) OVER (PARTITION BY customerNumber ORDER BY orderDate) AS next_order_date
     FROM (
@@ -31,7 +33,7 @@ cte_running_total_payments AS (
 	LIMIT 100000
 ),
 
--- left join the running total sales cte with the payments cte so that we have those critical values together on the same rows, then sum the running totals for sales_value and payments made, all organized based on date so that the amount a customer owed on various dates can be compared to the total that customer has paid by each of those various dates
+-- left join the running total sales cte with the payments cte so that we have those critical values together on the same rows, then sum the running totals for sales_value and payments made, with all orders from the same date and same customer combined into a single row
 cte_final AS (
 SELECT t1.*,
 	SUM(sales_value) OVER (PARTITION BY t1.customerNumber ORDER BY orderDate) AS running_total_sales,
